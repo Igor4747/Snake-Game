@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake</title>
+    <style>
+        body {
+            margin-top: 2%;
+            margin-left: 25%;
+        }
+
+        .pole {
+            width: 30px;
+            height: 30px;
+            border: 1px solid;
+            float: left;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .pole:nth-child(23n+1) {
+            clear: both;
+        }
+
+
+        .brzeg {
+            width: 30px;
+            height: 30px;
+            border: 1px solid;
+            background-color: darkgreen;
+            float: left;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: darkGreen;
+        }
+
+        .trawa {
+            width: 30px;
+            height: 30px;
+            border: 1px solid grey;
+            background-color: lightgreen;
+            float: left;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: rgba(79, 175, 79, 0);
+        }
+
+        .trawa:nth-child(2n+1) {
+            background-color: rgb(85, 134, 85);
+            color: rgba(144, 238, 144, 0)
+        }
+
+        .snake {
+            width: 30px;
+            height: 30px;
+            border: 1px solid grey;
+            background-color: lightgreen;
+            float: left;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: rgba(84, 84, 201, 0);
+            background-image: url("img/snake/waz.png");
+        }
+
+        .glowa {
+            width: 30px;
+            height: 30px;
+            border: 1px solid gray;
+            background-color: lightgreen;
+            color: rgba(100, 151, 201, 0);
+            float: left;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background-image: url("img/snake/glowa.png");
+            color: none;
+        }
+
+        .jablko {
+            width: 30px;
+            height: 30px;
+            border: 1px solid gray;
+            background-color: lightgreen;
+            float: left;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: rgba(255, 0, 0, 0);
+            background-image: url("img/snake/jablko.png");
+        }
+
+        .skret {
+            width: 30px;
+            height: 30px;
+            border: 1px solid gray;
+            background-color: lightgreen;
+            color: rgba(100, 151, 201, 0);
+            float: left;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background-image: url("img/snake/skret.png");
+            color: none;
+        }
+
+        .ogon {
+            width: 30px;
+            height: 30px;
+            border: 1px solid gray;
+            background-color: lightgreen;
+            color: rgba(100, 151, 201, 0);
+            float: left;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background-image: url("img/snake/ogon.png");
+            color: none;
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        //dodanie main
+        let main = document.createElement("div");
+        main.setAttribute("id", "main")
+        const w = 23;
+        let gracz = null
+        let a = null
+        let poleGryTab = null
+        let poczatek = null
+        let snake = []
+        let SnLg = 3
+        let Interwal = 300
+        //pole gry
+        function poleGry() {
+            snake = []
+            SnLg = 3
+            poleGryTab = []
+            for (i = 0; i < w; i++) {
+                poleGryTab[i] = []
+                for (j = 0; j < w; j++) {
+                    let div = document.createElement("div");
+                    if (i == 0 || j == 0 || j == w - 1 || i == w - 1) {
+                        div.innerHTML = "x"
+                        div.classList.add("brzeg")
+                    }
+                    else {
+                        div.innerHTML = 0
+                        div.classList.add("trawa")
+                    }
+                    div.classList.add("pole")
+                    div.setAttribute("id", i + "-" + j)
+                    poleGryTab[i].push(div)
+                    main.appendChild(div)
+                }
+            }
+            document.body.appendChild(main)
+        }
+        poleGry()
+        //dodanie gracza
+        function dodanieGracza() {
+            let x = 0
+            if (w % 2 == 0) {
+                x = w / 2
+            }
+            else {
+                x = (w - 1) / 2
+            }
+            let a = 1//poczatkowa wartosc gracza
+            document.getElementById(x + "-" + x).innerText = a
+            document.getElementById(x - 1 + "-" + x).innerText = 2
+            document.getElementById(x - 2 + "-" + x).innerText = 3
+            snake.push(document.getElementById(x - 2 + "-" + x))
+            snake.push(document.getElementById(x - 1 + "-" + x))
+            snake.push(document.getElementById(x + "-" + x))
+            document.getElementById(x + "-" + x).classList.remove("trawa")
+            document.getElementById(x + "-" + x).classList.add("snake")
+            document.getElementById(x + "-" + x).classList.add("glowa")
+            document.getElementById(x - 1 + "-" + x).classList.remove("trawa")
+            document.getElementById(x - 1 + "-" + x).classList.add("snake")
+            document.getElementById(x - 2 + "-" + x).classList.remove("trawa")
+            document.getElementById(x - 2 + "-" + x).classList.add("snake")
+            document.getElementById(x - 2 + "-" + x).classList.add("ogon")
+        }
+        dodanieGracza()
+
+        //znalezienie w polu gry pola z wartoscia 1 i nadanie mu obiektu poczatek
+        function znalezienieGracza() {
+            poleGryTab.forEach(i => {
+                i.forEach(j => {
+                    if (j.innerText == 1) {
+                        poczatek = j
+                    }
+                })
+            });
+            poleGryTab.forEach(i => {
+                i.forEach(j => {
+                    if (j.innerText == "j") {
+                        jablko = j
+                    }
+                })
+            });
+        }
+
+
+
+        //losowanie jablek
+        function losowanie() {
+            let x1 = Math.floor(Math.random() * 13) + 1
+            let y1 = Math.floor(Math.random() * 13) + 1
+            if (poleGryTab[y1][x1].innerHTML == 0) {
+                document.getElementById(y1 + "-" + x1).classList.remove("trawa")
+                document.getElementById(y1 + "-" + x1).innerHTML = "j"
+                document.getElementById(y1 + "-" + x1).classList.add("jablko")
+            }
+            else {
+                losowanie()
+            }
+        }
+        losowanie()
+
+        function SnClassDelete() {
+            poleGryTab.forEach(i => {
+                i.forEach(j => {
+                    j.classList.remove("snake")
+                    j.classList.remove("glowa")
+                    j.classList.remove("skret")
+                    j.classList.remove("ogon")
+                    if (j.innerHTML != "x" && j.innerHTML != "j") {
+                        j.classList.add("trawa")
+                    }
+                })
+            });
+        }
+
+
+        function przegrana() {
+            alert("Przegrałeś :/ Twoj wynik to " + parseInt(SnLg-3))
+            main.innerHTML = ""
+            poleGry()
+            dodanieGracza()
+            losowanie()
+            if (typeof InLewo !== 'undefined') {
+                clearInterval(InLewo)
+            }
+            if (typeof InPrawo !== 'undefined') {
+                clearInterval(InPrawo)
+            }
+            if (typeof InGora !== 'undefined') {
+                clearInterval(InGora)
+            }
+            if (typeof InDol !== 'undefined') {
+                clearInterval(InDol)
+            }
+        }
+
+        function skret() {
+            for (i = snake.length - 1; i >= 0; i--) {
+                if (snake[i - 1] && snake[i + 1]) {
+                    if (snake[i - 1].id.split("-")[0] - snake[i].id.split("-")[0] == 0) {//gora i dol
+                        if (snake[i].id.split("-")[1] - snake[i + 1].id.split("-")[1] == 0) {
+                            snake[i].classList.add("skret")
+                            // snake[i].style.transform = "rotate(0)"
+                            // console.log("leci do gory lub w dol")
+                            if (parseInt(snake[i - 1].id.split("-")[1]) > parseInt(snake[i].id.split("-")[1])) {
+                                if (snake[i].id.split("-")[0] > snake[i + 1].id.split("-")[0]) {
+                                    snake[i].style.transform = "rotate(270deg)"
+                                }
+                                if (snake[i].id.split("-")[0] < snake[i + 1].id.split("-")[0]) {
+                                    snake[i].style.transform = "rotate(0deg)"
+                                }
+                            }
+                            if (snake[i - 1].id.split("-")[1] < snake[i].id.split("-")[1]) {
+                                if (snake[i].id.split("-")[0] > snake[i + 1].id.split("-")[0]) {
+                                    snake[i].style.transform = "rotate(180deg)"
+                                }
+                                if (snake[i].id.split("-")[0] < snake[i + 1].id.split("-")[0]) {
+                                    snake[i].style.transform = "rotate(90deg)"
+                                }
+                            }
+                        }
+                    }
+                }
+                if (snake[i - 1] && snake[i + 1]) {
+                    if (snake[i - 1].id.split("-")[1] - snake[i].id.split("-")[1] == 0) {//prawo i lewo
+                        if (snake[i].id.split("-")[0] - snake[i + 1].id.split("-")[0] == 0) {
+                            snake[i].classList.add("skret")
+                            // snake[i].style.transform = "rotate(0)"
+                            // console.log("leci w prawo lub w lewo")
+                            if (parseInt(snake[i - 1].id.split("-")[0]) > parseInt(snake[i].id.split("-")[0])) {
+                                if (snake[i].id.split("-")[1] > snake[i + 1].id.split("-")[1]) {
+                                    snake[i].style.transform = "rotate(90deg)"
+                                    console.log(snake[i].style.transform)
+                                    console.log("leci z dolu w lewo")
+                                }
+                                if (snake[i].id.split("-")[1] < snake[i + 1].id.split("-")[1]) {
+                                    snake[i].style.transform = "rotate(0deg)"
+                                    console.log(snake[i].style.transform)
+                                    console.log("leci z dolu w prawo")
+                                }
+                            }
+                            if (snake[i - 1].id.split("-")[0] < snake[i].id.split("-")[0]) {
+                                if (snake[i].id.split("-")[1] > snake[i + 1].id.split("-")[1]) {
+                                    snake[i].style.transform = "rotate(180deg)"
+                                    console.log(snake[i].style.transform)
+                                    console.log("leci z gory w lewo")
+                                }
+                                if (snake[i].id.split("-")[1] < snake[i + 1].id.split("-")[1]) {
+                                    snake[i].style.transform = "rotate(270deg)"
+                                    console.log(snake[i].style.transform)
+                                    console.log("leci z gory w prawo")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        function gora() {
+            SnClassDelete()
+            znalezienieGracza()
+
+            let xG = poczatek.id.split("-")[1]//polozenie x gracza
+            let yG = poczatek.id.split("-")[0]//polozenia y gracza
+            y1 = yG - 1
+            poczatek = document.getElementById(y1 + "-" + xG)
+            poczatek.classList.remove("snake")
+            poczatek.classList.add("trawa")
+            if (poczatek.innerHTML != 0 && poczatek.innerHTML != "j") {
+                przegrana()
+            }
+            if (document.getElementById(y1 + "-" + xG) == jablko) {
+                jablko.classList.remove("jablko")
+                document.getElementById(y1 + "-" + xG).innerHTML = 0
+                SnLg++
+                poczatek = document.getElementById(y1 + "-" + xG)
+                document.getElementById(y1 + "-" + xG).classList.remove("trawa")
+                document.getElementById(y1 + "-" + xG).classList.add("snake")
+                document.getElementById(y1 + "-" + xG).classList.add("glowa")//grafika glowy
+                document.getElementById(y1 + "-" + xG).style.transform = "rotate(180deg)"
+                snake.push(document.getElementById(y1 + "-" + xG))
+                for (i = snake.length; i > 0; i--) {
+                    snake[i - 1].innerHTML++
+                }
+                for (i = snake.length - SnLg; i > 0; i--) {
+                    snake[i - 1].innerHTML = 0
+                    snake.shift()
+                }
+                for (i = snake.length; i > 0; i--) {
+                    snake[i - 1].classList.remove("trawa")
+                    snake[i - 1].classList.add("snake")
+                }
+                snake[0].classList.add("ogon")
+                skret()
+                losowanie()
+            }
+            if (poczatek.innerHTML != "x" && poczatek.innerHTML == 0) {
+                poczatek = document.getElementById(y1 + "-" + xG)
+                document.getElementById(y1 + "-" + xG).classList.remove("trawa")
+                document.getElementById(y1 + "-" + xG).classList.add("snake")
+                document.getElementById(y1 + "-" + xG).classList.add("glowa")//grafika
+                document.getElementById(y1 + "-" + xG).style.transform = "rotate(180deg)"
+                snake.push(document.getElementById(y1 + "-" + xG))
+                for (i = snake.length; i > 0; i--) {
+                    snake[i - 1].innerHTML++
+                }
+                for (i = snake.length - SnLg; i > 0; i--) {
+                    snake[i - 1].innerHTML = 0
+                    snake.shift()
+                }
+                for (i = snake.length; i > 0; i--) {
+                    snake[i - 1].classList.remove("trawa")
+                    snake[i - 1].classList.add("snake")
+                }
+                snake[0].classList.add("ogon")
+                skret()
+            }
+        }
+        function lewo() {
+            SnClassDelete()
+            znalezienieGracza()
+            let xG = poczatek.id.split("-")[1]//polozenie x gracza
+            let yG = poczatek.id.split("-")[0]//polozenia y gracza
+            x1 = xG - 1
+            poczatek = document.getElementById(yG + "-" + x1)
+            poczatek.classList.remove("snake")
+            poczatek.classList.add("trawa")
+            if (poczatek.innerHTML != 0 && poczatek.innerHTML != "j") {
+                przegrana()
+            }
+            if (document.getElementById(yG + "-" + x1) == jablko) {
+                jablko.classList.remove("jablko")
+                document.getElementById(yG + "-" + x1).innerHTML = 0
+                SnLg++
+                poczatek = document.getElementById(yG + "-" + x1)
+                document.getElementById(yG + "-" + x1).classList.remove("trawa")
+                document.getElementById(yG + "-" + x1).classList.add("snake")
+                document.getElementById(yG + "-" + x1).classList.add("glowa")//grafika glowy
+                document.getElementById(yG + "-" + x1).style.transform = "rotate(90deg)"
+                snake.push(document.getElementById(yG + "-" + x1))
+                for (i = snake.length; i > 0; i--) {
+                    snake[i - 1].innerHTML++
+                }
+                for (i = snake.length - SnLg; i > 0; i--) {
+                    snake[i - 1].innerHTML = 0
+                    snake.shift()
+                }
+                for (i = snake.length; i > 0; i--) {
+                    snake[i - 1].classList.remove("trawa")
+                    snake[i - 1].classList.add("snake")
+                }
+                snake[0].classList.add("ogon")
+                skret()
+                losowanie()
+            }
+            if (poczatek.innerHTML != "x" && poczatek.innerHTML == 0) {
+                poczatek = document.getElementById(yG + "-" + x1)
+                document.getElementById(yG + "-" + x1).classList.remove("trawa")
+                document.getElementById(yG + "-" + x1).classList.add("snake")
+                document.getElementById(yG + "-" + x1).classList.add("glowa")//grafika glowy
+                document.getElementById(yG + "-" + x1).style.transform = "rotate(90deg)"
+                snake.push(document.getElementById(yG + "-" + x1))
+                for (i = snake.length; i > 0; i--) {
+                    snake[i - 1].innerHTML++
+                }
+                for (i = snake.length - SnLg; i > 0; i--) {
+                    snake[i - 1].innerHTML = 0
+                    snake.shift()
+                }
+                for (i = snake.length; i > 0; i--) {
+                    snake[i - 1].classList.remove("trawa")
+                    snake[i - 1].classList.add("snake")
+                }
+                snake[0].classList.add("ogon")
+                skret()
+            }
+        }
+
+        function prawo() {
+            SnClassDelete()
+            znalezienieGracza()
+            let xG = poczatek.id.split("-")[1]//polozenie x gracza
+            let yG = poczatek.id.split("-")[0]//polozenia y gracza
+            x2 = parseInt(xG) + 1
+            poczatek = document.getElementById(yG + "-" + x2)
+            poczatek.classList.remove("snake")
+            poczatek.classList.add("trawa")
+            if (poczatek.innerHTML != 0 && poczatek.innerHTML != "j") {
+                przegrana()
+            }
+            if (document.getElementById(yG + "-" + x2) == jablko) {
+                jablko.classList.remove("jablko")
+                document.getElementById(yG + "-" + x2).innerHTML = 0
+                SnLg++
+                poczatek = document.getElementById(yG + "-" + x2)
+                document.getElementById(yG + "-" + x2).classList.remove("trawa")
+                document.getElementById(yG + "-" + x2).classList.add("snake")
+                document.getElementById(yG + "-" + x2).classList.add("glowa")//grafika glowy
+                document.getElementById(yG + "-" + x2).style.transform = "rotate(270deg)"
+                snake.push(document.getElementById(yG + "-" + x2))
+                for (i = snake.length; i > 0; i--) {
+                    snake[i - 1].innerHTML++
+                }
+                for (i = snake.length - SnLg; i > 0; i--) {
+                    snake[i - 1].innerHTML = 0
+                    snake.shift()
+                }
+                for (i = snake.length; i > 0; i--) {
+                    snake[i - 1].classList.remove("trawa")
+                    snake[i - 1].classList.add("snake")
+                }
+                snake[0].classList.add("ogon")
+                skret()
+                losowanie()
+            }
+            if (poczatek.innerHTML != "x" && poczatek.innerHTML == 0) {
+                poczatek = document.getElementById(yG + "-" + x2)
+                document.getElementById(yG + "-" + x2).classList.remove("trawa")
+                document.getElementById(yG + "-" + x2).classList.add("snake")
+                document.getElementById(yG + "-" + x2).classList.add("glowa")//grafika glowy
+                document.getElementById(yG + "-" + x2).style.transform = "rotate(270deg)"
+                snake.push(document.getElementById(yG + "-" + x2))
+                for (i = snake.length; i > 0; i--) {
+                    snake[i - 1].innerHTML++
+                }
+                for (i = snake.length - SnLg; i > 0; i--) {
+                    snake[i - 1].innerHTML = 0
+                    snake.shift()
+                }
+                for (i = snake.length; i > 0; i--) {
+                    snake[i - 1].classList.remove("trawa")
+                    snake[i - 1].classList.add("snake")
+                }
+                snake[0].classList.add("ogon")
+                skret()
+            }
+        }
+
+        function dol() {
+            SnClassDelete()
+            znalezienieGracza()
+            let xG = poczatek.id.split("-")[1]//polozenie x gracza
+            let yG = poczatek.id.split("-")[0]//polozenia y gracza
+            y2 = parseInt(yG) + 1
+            poczatek = document.getElementById(y2 + "-" + xG)
+            if (poczatek.innerHTML != 0 && poczatek.innerHTML != "j") {
+                przegrana()
+            }
+            poczatek.classList.remove("snake")
+            poczatek.classList.add("trawa")
+            if (document.getElementById(y2 + "-" + xG) == jablko) {
+                jablko.classList.remove("jablko")
+                document.getElementById(y2 + "-" + xG).innerHTML = 0
+                SnLg++
+                poczatek = document.getElementById(y2 + "-" + xG)
+                document.getElementById(y2 + "-" + xG).classList.remove("trawa")
+                document.getElementById(y2 + "-" + xG).classList.add("snake")
+                document.getElementById(y2 + "-" + xG).classList.add("glowa")//grafika glowy
+                document.getElementById(y2 + "-" + xG).style.transform = "rotate(0deg)"
+                snake.push(document.getElementById(y2 + "-" + xG))
+                for (i = snake.length; i > 0; i--) {
+                    snake[i - 1].innerHTML++
+                }
+                for (i = snake.length - SnLg; i > 0; i--) {
+                    snake[i - 1].innerHTML = 0
+                    snake.shift()
+                }
+                for (i = snake.length; i > 0; i--) {
+                    snake[i - 1].classList.remove("trawa")
+                    snake[i - 1].classList.add("snake")
+                }
+                snake[0].classList.add("ogon")
+                skret()
+                losowanie()
+            }
+            if (poczatek.innerHTML != "x" && poczatek.innerHTML == 0) {
+                poczatek = document.getElementById(y2 + "-" + xG)
+                document.getElementById(y2 + "-" + xG).classList.remove("trawa")
+                document.getElementById(y2 + "-" + xG).classList.add("snake")
+                document.getElementById(y2 + "-" + xG).classList.add("glowa")//grafika glowy
+                document.getElementById(y2 + "-" + xG).style.transform = "rotate(0deg)"
+                snake.push(document.getElementById(y2 + "-" + xG))
+                for (i = snake.length; i > 0; i--) {
+                    snake[i - 1].innerHTML++
+                }
+                console.log(snake)
+                for (i = snake.length - SnLg; i > 0; i--) {
+                    snake[i - 1].innerHTML = 0
+                    snake.shift()
+                }
+                
+                for (i = snake.length; i > 0; i--) {
+                    snake[i - 1].classList.remove("trawa")
+                    snake[i - 1].classList.add("snake")
+                }
+                snake[0].classList.add("ogon")
+                skret()
+            }
+        }
+
+        //poruszanie się  
+        document.addEventListener("keypress", poruszanie);
+        function poruszanie(event) {
+            var x = event.charCode
+            if (x == 97) {//lewo
+                if (typeof InLewo !== 'undefined') {
+                    clearInterval(InLewo)
+                }
+                if (typeof InPrawo !== 'undefined') {
+                    clearInterval(InPrawo)
+                }
+                if (typeof InGora !== 'undefined') {
+                    clearInterval(InGora)
+                }
+                if (typeof InDol !== 'undefined') {
+                    clearInterval(InDol)
+                }
+                InLewo = setInterval(lewo, Interwal);
+            }
+            if (x == 100) {//prawo
+                if (typeof InLewo !== 'undefined') {
+                    clearInterval(InLewo)
+                }
+                if (typeof InPrawo !== 'undefined') {
+                    clearInterval(InPrawo)
+                }
+                if (typeof InGora !== 'undefined') {
+                    clearInterval(InGora)
+                }
+                if (typeof InDol !== 'undefined') {
+                    clearInterval(InDol)
+                }
+                InPrawo = setInterval(prawo, Interwal);
+            }
+            if (x == 119) {//gora
+                if (typeof InLewo !== 'undefined') {
+                    clearInterval(InLewo)
+                }
+                if (typeof InPrawo !== 'undefined') {
+                    clearInterval(InPrawo)
+                }
+                if (typeof InGora !== 'undefined') {
+                    clearInterval(InGora)
+                }
+                if (typeof InDol !== 'undefined') {
+                    clearInterval(InDol)
+                }
+                InGora = setInterval(gora, Interwal);
+            }
+            if (x == 115) {//dol
+                if (typeof InLewo !== 'undefined') {
+                    clearInterval(InLewo)
+                }
+                if (typeof InPrawo !== 'undefined') {
+                    clearInterval(InPrawo)
+                }
+                if (typeof InGora !== 'undefined') {
+                    clearInterval(InGora)
+                }
+                if (typeof InDol !== 'undefined') {
+                    clearInterval(InDol)
+                }
+                InDol = setInterval(dol, Interwal);
+            }
+        }
+    </script>
+</body>
+
+</html>
